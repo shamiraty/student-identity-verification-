@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanafunzi Waliosajiliwa</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 1200px; /* Increased max-width */
+        }
+        .table-header th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 700;
+            color: #4b5563;
+            background-color: #f3f4f6;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .table-row td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            color: #4b5563;
+        }
+        .table-row:last-child td {
+            border-bottom: none;
+        }
+        .table-row:hover {
+            background-color: #f9fafb;
+        }
+        .btn-action {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-edit {
+            background-color: #3b82f6; /* Blue */
+            color: white;
+        }
+        .btn-edit:hover {
+            background-color: #2563eb;
+        }
+        .btn-delete {
+            background-color: #ef4444; /* Red */
+            color: white;
+        }
+        .btn-delete:hover {
+            background-color: #dc2626;
+        }
+        .btn-view {
+            background-color: #10b981;
+            color: white;
+        }
+        .btn-view:hover {
+            background-color: #059669;
+        }
+        .flash-message {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            animation: slideInTop 0.5s ease-out;
+        }
+        .flash-success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #34d399;
+        }
+        .flash-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        @keyframes slideInTop {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Wanafunzi Waliosajiliwa</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flex justify-center w-full">
+                    <ul class="list-none p-0 m-0 w-full">
+                        {% for category, message in messages %}
+                            <li class="flash-message {% if category == 'success' %}flash-success{% else %}flash-error{% endif %}">
+                                {{ message }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="overflow-x-auto rounded-lg shadow-md border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr class="table-header">
+                        <th>Namba ya Usajili</th>
+                        <th>Jina Kamili</th>
+                        <th>Idara</th>
+                        <th>Programu</th>
+                        <th>Hali ya Usajili</th>
+                        <th>Vitendo</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for student in students %}
+                    <tr class="table-row">
+                        <td>{{ student.registration_number }}</td>
+                        <td>{{ student.firstname }} {{ student.middlename if student.middlename else '' }}</td>
+                        <td>{{ student.department }}</td>
+                        <td>{{ student.programme }}</td>
+                        <td>
+                            {% if student.registration_status == 1 %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Amesajiliwa
+                                </span>
+                            {% else %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    Haijasajiliwa
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="flex flex-col sm:flex-row gap-2">
+                            <a href="{{ url_for('view_attendance', student_id=student.id) }}" class="btn-action btn-view">
+                                Angalia Mahudhurio
+                            </a>
+                            <a href="{{ url_for('edit_student', student_id=student.id) }}" class="btn-action btn-edit">
+                                Hariri
+                            </a>
+                            <form action="{{ url_for('delete_student', student_id=student.id) }}" method="POST" onsubmit="return confirm('Una uhakika unataka kumfuta mwanafunzi huyu na rekodi zake zote?');">
+                                <button type="submit" class="btn-action btn-delete">
+                                    Futa
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">
+                            Hakuna wanafunzi waliosajiliwa bado.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex justify-center mt-8">
+            <a href="{{ url_for('index') }}" class="text-blue-600 hover:text-blue-800 font-medium mr-4">Rudi kwenye Ukurasa Mkuu</a>
+            <a href="{{ url_for('register_student') }}" class="text-purple-600 hover:text-purple-800 font-medium">Sajili Mwanafunzi Mpya</a>
+        </div>
+    </div>
+</body>
+</html>

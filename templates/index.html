@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INTELLIGENT IDENTITY VERIFICATION</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideInTop {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+        .animate-slideInTop {
+            animation: slideInTop 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 font-sans">
+<main class="w-full max-w-6xl mx-auto space-y-8">
+
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-lg p-6 text-center border border-gray-200">
+        <h1 class="text-3xl md:text-4xl font-bold text-blue-700 tracking-tight">
+            INTELLIGENT IDENTITY VERIFICATION
+        </h1>
+        <p class="text-gray-500 mt-2 text-sm">Mfumo wa kisasa wa uthibitisho wa utambulisho kwa kutumia uso</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="w-full">
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-lg font-semibold text-center mb-4 animate-slideInTop
+                        {% if category == 'success' %} bg-green-100 text-green-800 border border-green-300
+                        {% else %} bg-red-100 text-red-800 border border-red-300 {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Kamera ya Moja kwa Moja -->
+        <div class="flex flex-col p-6 bg-white rounded-xl shadow-md border border-gray-200">
+            <div class="relative w-full pb-[75%] bg-black rounded-lg overflow-hidden shadow">
+                <img src="{{ url_for('video_feed') }}" alt="Live Camera Feed"
+                     class="absolute top-0 left-0 w-full h-full object-cover rounded-lg">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                <button id="signInBtn"
+                        class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg shadow hover:shadow-lg transition duration-200">
+                    Ingia Mtihani
+                </button>
+                <button id="signOutBtn"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg shadow hover:shadow-lg transition duration-200">
+                    Toka Mtihani
+                </button>
+            </div>
+
+            <div id="messageBox"
+                 class="hidden w-full mt-4 p-3 rounded-lg text-sm font-medium text-center animate-fadeIn">
+            </div>
+        </div>
+
+        <!-- Taarifa za Mwanafunzi -->
+        <div class="flex flex-col p-6 bg-white rounded-xl shadow-md border border-gray-200">
+            <h2 class="text-xl font-semibold text-purple-700 mb-4 border-b pb-2">Taarifa za Mwanafunzi</h2>
+            <div id="studentInfo"
+                 class="bg-gray-50 rounded-lg p-6 flex flex-col items-center justify-center text-gray-600 min-h-[300px] border border-dashed border-gray-300">
+                <p class="text-base md:text-lg text-gray-500">Scan uso wako ili kuona taarifa.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buttons Bottom -->
+    <div class="flex flex-col sm:flex-row gap-4 mt-10">
+        <a href="{{ url_for('register_student') }}"
+           class="w-full sm:w-1/2 bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 text-center font-semibold rounded-lg shadow-md transition duration-200">
+            Sajili Mwanafunzi Mpya
+        </a>
+        <a href="{{ url_for('view_students') }}"
+           class="w-full sm:w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 text-center font-semibold rounded-lg shadow-md transition duration-200">
+            Angalia Wanafunzi Waliosajiliwa
+        </a>
+    </div>
+
+</main>
+
+<script>
+    document.getElementById('signInBtn').addEventListener('click', function () {
+        scanFace('signin');
+    });
+
+    document.getElementById('signOutBtn').addEventListener('click', function () {
+        scanFace('signout');
+    });
+
+    async function scanFace(recordType) {
+        const messageBox = document.getElementById('messageBox');
+        const studentInfoDiv = document.getElementById('studentInfo');
+
+        // Reset styles
+        messageBox.className = 'w-full mt-4 p-3 rounded-lg text-sm font-medium text-center animate-fadeIn';
+        messageBox.textContent = 'Inachanganua... Tafadhali subiri.';
+        messageBox.classList.add('bg-gray-200', 'text-gray-700', 'border', 'border-gray-300');
+
+        studentInfoDiv.innerHTML = '<p class="text-lg text-gray-500">Inachanganua...</p>';
+        studentInfoDiv.classList.remove('justify-start');
+        studentInfoDiv.classList.add('justify-center');
+
+        try {
+            const formData = new FormData();
+            formData.append('record_type', recordType);
+
+            const response = await fetch('/scan', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            messageBox.classList.remove('bg-gray-200', 'text-gray-700', 'border-gray-300');
+
+            if (data.status === 'success') {
+                messageBox.textContent = data.message;
+                messageBox.classList.add('bg-green-100', 'text-green-800', 'border', 'border-green-300');
+
+                const student = data.student_info;
+                studentInfoDiv.innerHTML = `
+                    <div class="flex flex-col items-center mb-4">
+                        <img src="${student.passport_size_url}" alt="Picha ya Pasipoti"
+                             class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-blue-500 shadow-lg mb-4">
+                        <p class="text-2xl md:text-3xl font-extrabold text-gray-900 text-center">${student.firstname} ${student.middlename ?? ''} ${student.lastname}</p>
+                        <p class="text-lg md:text-xl text-gray-700 mt-1">Namba ya Usajili: <span class="font-semibold">${student.registration_number}</span></p>
+                    </div>
+                    <ul class="w-full max-w-sm mx-auto text-gray-700 border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-200">
+                        <li class="p-3 bg-white flex justify-between items-center">
+                            <span class="font-semibold">Idara:</span> <span>${student.department}</span>
+                        </li>
+                        <li class="p-3 bg-gray-50 flex justify-between items-center">
+                            <span class="font-semibold">Programu:</span> <span>${student.programme}</span>
+                        </li>
+                        <li class="p-3 bg-white flex justify-between items-center">
+                            <span class="font-semibold">Mwaka wa Masomo:</span> <span>${student.academic_year}</span>
+                        </li>
+                        <li class="p-3 bg-gray-50 flex justify-between items-center">
+                            <span class="font-semibold">Mwaka wa Kusoma:</span> <span>${student.year_of_study}</span>
+                        </li>
+                        <li class="p-3 bg-white flex justify-between items-center">
+                            <span class="font-semibold">Muhula:</span> <span>${student.semester}</span>
+                        </li>
+                        <li class="p-3 bg-gray-50 flex justify-between items-center">
+                            <span class="font-semibold">Hali ya Usajili:</span> <span>${student.registration_status}</span>
+                        </li>
+                        <li class="p-3 bg-white text-xl md:text-2xl font-bold text-center ${parseFloat(student.confidence) >= 70 ? 'text-green-600' : 'text-red-600'}">
+                            Usahihi: ${parseFloat(student.confidence).toFixed(2)}%
+                        </li>
+                    </ul>
+                `;
+                studentInfoDiv.classList.remove('justify-center');
+                studentInfoDiv.classList.add('justify-start');
+            } else {
+                messageBox.textContent = data.message;
+                messageBox.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
+                studentInfoDiv.innerHTML = '<p class="text-lg text-gray-500">Scan uso wako ili kuona taarifa.</p>';
+                studentInfoDiv.classList.remove('justify-start');
+                studentInfoDiv.classList.add('justify-center');
+            }
+        } catch (error) {
+            console.error('Error during scan:', error);
+            messageBox.textContent = 'Hitilafu: Imeshindwa kuwasiliana na seva.';
+            messageBox.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
+            studentInfoDiv.innerHTML = '<p class="text-lg text-gray-500">Scan uso wako ili kuona taarifa.</p>';
+            studentInfoDiv.classList.remove('justify-start');
+            studentInfoDiv.classList.add('justify-center');
+        }
+    }
+</script>
+</body>
+</html>

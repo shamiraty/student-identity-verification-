@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekodi za Mahudhurio kwa {{ student.firstname }}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 800px;
+        }
+        .table-header th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 700;
+            color: #4b5563;
+            background-color: #f3f4f6;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .table-row td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            color: #4b5563;
+        }
+        .table-row:last-child td {
+            border-bottom: none;
+        }
+        .table-row:hover {
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">Rekodi za Mahudhurio</h1>
+        <h2 class="text-xl font-semibold text-center text-gray-700 mb-8">Mwanafunzi: {{ student.firstname }} {{ student.middlename if student.middlename else '' }} ({{ student.registration_number }})</h2>
+
+        <div class="overflow-x-auto rounded-lg shadow-md">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr class="table-header">
+                        <th>Aina ya Rekodi</th>
+                        <th>Muda na Tarehe</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for record in records %}
+                    <tr class="table-row">
+                        <td>
+                            {% if record.record_type == 'signin' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Ingia
+                                </span>
+                            {% else %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Toka
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ record.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="2" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">
+                            Hakuna rekodi za mahudhurio zilizopatikana kwa mwanafunzi huyu.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex justify-center mt-8">
+            <a href="{{ url_for('view_students') }}" class="text-blue-600 hover:text-blue-800 font-medium mr-4">Rudi kwa Orodha ya Wanafunzi</a>
+            <a href="{{ url_for('index') }}" class="text-blue-600 hover:text-blue-800 font-medium">Rudi kwenye Ukurasa Mkuu</a>
+        </div>
+    </div>
+</body>
+</html>
